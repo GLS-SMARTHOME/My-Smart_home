@@ -18,7 +18,7 @@
   h2 { margin-bottom: 20px; text-align: center; }
   .container { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 20px; }
   label { display: block; margin-top: 10px; font-weight: bold; }
-  select, input[type="text"], input[type="number"] {
+  select, input[type="text"], input[type="number"], input[type="password"] {
     padding: 10px; font-size: 1em; margin-top: 5px; width: 100%;
     border-radius: 5px; border: 1px solid #444; background: #1e1e1e; color: #fff;
   }
@@ -27,6 +27,7 @@
     background: #1f6feb; border: none; color: white; border-radius: 5px; transition: 0.2s;
   }
   button:hover { background: #1557c1; }
+  hr { border-color: #333; }
 </style>
 </head>
 <body>
@@ -34,6 +35,7 @@
 <h2>Flasher HomeSend</h2>
 
 <div id="page-content" class="container" style="display:none;">
+
   <!-- IR Code Section -->
   <label for="btn">Choisir Button:</label>
   <select id="btn">
@@ -53,15 +55,23 @@
   <label for="activationCode">Entrer code Activation:</label>
   <input type="number" id="activationCode" min="0" max="2000" placeholder="Code Activation ici">
   <button onclick="sendActivation()">Confirmer</button>
+
+  <hr>
+
+  <!-- Set Password Section -->
+  <label for="newPass">Changer mot de passe:</label>
+  <input type="password" id="newPass" placeholder="Nouveau mot de passe">
+  <button onclick="setPassword()">Envoyer</button>
+
 </div>
 
 <script>
-const SERVER_URL = "http://192.168.4.1"; // <-- Fixed server URL
+const SERVER_URL = "http://192.168.4.1"; // Fixed server URL
+let currentKey = "1111";
 
 window.onload = function() {
-  const correctKey = "1111";
   let userKey = prompt("Entrer code securite pour acceder:");
-  if (userKey === null || userKey !== correctKey) {
+  if (userKey === null || userKey !== currentKey) {
     alert("Code incorrect! Access refuse.");
     document.body.innerHTML = "<h2 style='color:red;'>Access denied.</h2>";
     return;
@@ -78,8 +88,8 @@ function uploadCode() {
   const hexRegex = /^[0-9A-F]{8}$/;
   if (!hexRegex.test(code)) { alert("Code doit etre 8 chiffre!"); return; }
 
-  const link = `${SERVER_URL}/storecode?btn=${encodeURIComponent(btn)}&code=${encodeURIComponent(code)}&key=1111`;
-  window.open(link, "_blank"); // open in new tab
+  const link = `${SERVER_URL}/storecode?btn=${encodeURIComponent(btn)}&code=${encodeURIComponent(code)}&key=${currentKey}`;
+  window.open(link, "_blank");
 }
 
 // Send Activation
@@ -91,7 +101,17 @@ function sendActivation() {
   }
 
   const link = `${SERVER_URL}/activation?code=${code}`;
-  window.open(link, "_blank"); // open in new tab
+  window.open(link, "_blank");
+}
+
+// Set new password
+function setPassword() {
+  let newPass = document.getElementById('newPass').value.trim();
+  if (newPass.length === 0) { alert("Entrez un mot de passe valide!"); return; }
+
+  const link = `${SERVER_URL}/setpass?newpass=${encodeURIComponent(newPass)}&key=${currentKey}`;
+  window.open(link, "_blank");
+  alert("Requete de changement de mot de passe envoyee.");
 }
 </script>
 
