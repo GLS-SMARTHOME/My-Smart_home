@@ -5,8 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Flasher HomeSend</title>
 <style>
-  /* Reset & base */
-  * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: sans-serif;
     background: #121212;
@@ -18,70 +16,17 @@
     padding: 20px;
   }
   h2 { margin-bottom: 20px; text-align: center; }
-  
-  /* Container */
-  .container {
-    width: 100%;
-    max-width: 400px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-  }
-
+  .container { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 20px; }
   label { display: block; margin-top: 10px; font-weight: bold; }
   select, input[type="text"], input[type="number"] {
-    padding: 10px;
-    font-size: 1em;
-    margin-top: 5px;
-    width: 100%;
-    border-radius: 5px;
-    border: 1px solid #444;
-    background: #1e1e1e;
-    color: #fff;
+    padding: 10px; font-size: 1em; margin-top: 5px; width: 100%;
+    border-radius: 5px; border: 1px solid #444; background: #1e1e1e; color: #fff;
   }
-  
   button {
-    margin-top: 10px;
-    padding: 12px;
-    font-size: 1em;
-    cursor: pointer;
-    background: #1f6feb;
-    border: none;
-    color: white;
-    border-radius: 5px;
-    transition: 0.2s;
+    margin-top: 10px; padding: 12px; font-size: 1em; cursor: pointer;
+    background: #1f6feb; border: none; color: white; border-radius: 5px; transition: 0.2s;
   }
-  button:disabled { background: #555; cursor: not-allowed; }
-  button:hover:not(:disabled) { background: #1557c1; }
-
-  #status, #activationStatus {
-    margin-top: 10px;
-    min-height: 20px;
-    font-size: 0.95em;
-    word-break: break-word;
-  }
-
-  hr { border: 1px solid #444; margin: 30px 0; }
-
-  /* Spinner */
-  .spinner {
-    border: 3px solid #333;
-    border-top: 3px solid #1f6feb;
-    border-radius: 50%;
-    width: 18px;
-    height: 18px;
-    animation: spin 1s linear infinite;
-    display: inline-block;
-    vertical-align: middle;
-    margin-left: 8px;
-  }
-
-  @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-  @media (max-width: 450px) {
-    body { padding: 15px; }
-    .container { gap: 15px; }
-  }
+  button:hover { background: #1557c1; }
 </style>
 </head>
 <body>
@@ -100,87 +45,53 @@
 
   <label for="code">Entrer Code IR:</label>
   <input type="text" id="code" placeholder="Code IR ici">
-  <button id="sendIR" onclick="uploadCode()">Send IR</button>
-  <div id="status"></div>
+  <button onclick="uploadCode()">Send IR</button>
 
   <hr>
 
   <!-- Activation Section -->
   <label for="activationCode">Entrer code Activation:</label>
   <input type="number" id="activationCode" min="0" max="2000" placeholder="Code Activation ici">
-  <button id="sendActivation" onclick="sendActivation()">Confirmer</button>
-  <div id="activationStatus"></div>
+  <button onclick="sendActivation()">Confirmer</button>
 </div>
 
 <script>
-window.onload = function() {
-  const correctKey = "1111"; // Security key
-  let userKey = prompt("Entrer code securite pour acceder:");
+const SERVER_URL = "http://192.168.4.1"; // <-- Fixed server URL
 
+window.onload = function() {
+  const correctKey = "1111";
+  let userKey = prompt("Entrer code securite pour acceder:");
   if (userKey === null || userKey !== correctKey) {
     alert("Code incorrect! Access refuse.");
     document.body.innerHTML = "<h2 style='color:red;'>Access denied.</h2>";
     return;
   }
-
-  // Show page
   document.getElementById('page-content').style.display = 'flex';
-
-  // Load last values if exist
-  if(localStorage.getItem('lastIRCode')) document.getElementById('code').value = localStorage.getItem('lastIRCode');
-  if(localStorage.getItem('lastActivation')) document.getElementById('activationCode').value = localStorage.getItem('lastActivation');
 };
 
 // Upload IR Code
 function uploadCode() {
   const btn = document.getElementById('btn').value;
   let code = document.getElementById('code').value.trim().toUpperCase();
-
-  if (!code) { alert("Entrer un code valide!"); return; }
   if (code.startsWith("0X")) code = code.substring(2);
 
   const hexRegex = /^[0-9A-F]{8}$/;
   if (!hexRegex.test(code)) { alert("Code doit etre 8 chiffre!"); return; }
 
-  const statusDiv = document.getElementById('status');
-  const sendButton = document.getElementById('sendIR');
-  statusDiv.innerHTML = "Flashing <span class='spinner'></span>";
-  sendButton.disabled = true;
-
-  fetch(`http://192.168.4.1/storecode?btn=${encodeURIComponent(btn)}&code=${encodeURIComponent(code)}&key=1111`)
-    .then(resp => { if (!resp.ok) throw new Error("HTTP error " + resp.status); return resp.text(); })
-    .then(text => { 
-      statusDiv.innerText = text; 
-      localStorage.setItem('lastIRCode', code);
-      document.getElementById('code').value = '';
-    })
-    .catch(err => { statusDiv.innerText = "Error: " + err; })
-    .finally(() => { sendButton.disabled = false; });
+  const link = `${SERVER_URL}/storecode?btn=${encodeURIComponent(btn)}&code=${encodeURIComponent(code)}&key=1111`;
+  window.open(link, "_blank"); // open in new tab
 }
 
-// Send Activation Code
+// Send Activation
 function sendActivation() {
   let code = parseInt(document.getElementById('activationCode').value, 10);
-  const statusDiv = document.getElementById('activationStatus');
-
   if (isNaN(code) || code < 0 || code > 2000) {
     alert("Code doit etre entre 0 et 2000!");
     return;
   }
 
-  const sendButton = document.getElementById('sendActivation');
-  statusDiv.innerHTML = "Sending <span class='spinner'></span>";
-  sendButton.disabled = true;
-
-  fetch(`http://192.168.4.1/activation?code=${code}`)
-    .then(resp => { if (!resp.ok) throw new Error("HTTP error " + resp.status); return resp.text(); })
-    .then(text => { 
-      statusDiv.innerText = text; 
-      localStorage.setItem('lastActivation', code);
-      document.getElementById('activationCode').value = '';
-    })
-    .catch(err => { statusDiv.innerText = "Error: " + err; })
-    .finally(() => { sendButton.disabled = false; });
+  const link = `${SERVER_URL}/activation?code=${code}`;
+  window.open(link, "_blank"); // open in new tab
 }
 </script>
 
