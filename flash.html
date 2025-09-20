@@ -67,7 +67,7 @@
 
 <script>
 const SERVER_URL = "http://192.168.4.1"; // Fixed server URL
-let currentKey = "1111";
+let currentKey = "1111"; // Security code
 
 window.onload = function() {
   let userKey = prompt("Entrer code securite pour acceder:");
@@ -109,7 +109,8 @@ function setPassword() {
   let newPass = document.getElementById('newPass').value.trim();
   if (newPass.length === 0) { alert("Entrez un mot de passe valide!"); return; }
 
-  const link = `${SERVER_URL}/setpass?newpass=${encodeURIComponent(newPass)}&key=${currentKey}`;
+  // Match ESP32 handler: /setpwd?p=...
+  const link = `${SERVER_URL}/setpwd?p=${encodeURIComponent(newPass)}&key=${currentKey}`;
   window.open(link, "_blank");
   alert("Requete de changement de mot de passe envoyee.");
 }
