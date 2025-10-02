@@ -45,6 +45,13 @@
     <option value="tv_volup">TV Volume Up</option>
     <option value="tv_voldn">TV Volume Down</option>
     <option value="tv_mute">TV Mute</option>
+    <option value="tv_up">TV Up</option>
+    <option value="tv_down">TV Down</option>
+    <option value="tv_left">TV Left</option>
+    <option value="tv_right">TV Right</option>
+    <option value="tv_enter">TV Ok</option>
+    <option value="tv_list">TV List</option>
+    <option value="tv_exit">TV Exit</option>
   </select>
 
   <label for="code">Entrer Code IR:</label>
@@ -97,7 +104,7 @@ function uploadCode() {
 // Send Activation
 function sendActivation() {
   let code = parseInt(document.getElementById('activationCode').value, 10);
-  if (isNaN(code) || code < 0 || code > 2000) {
+  if (isNaN(code) || code < 0 || code > 1988) {
     alert("Code doit etre entre 0 et 2000!");
     return;
   }
