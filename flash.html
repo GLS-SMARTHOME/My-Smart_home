@@ -66,6 +66,15 @@
   <button onclick="sendActivation()">Confirmer</button>
 
   <hr>
+  
+<h3>Sélectionnez nombre Lampes</h3>
+
+<select id="sendLightNumber">
+  <option value="">-- Choisir un numéro --</option>
+</select>
+
+<button onclick="sendLightNumber()">Activer</button>
+<hr>
 
   <!-- Set Password Section -->
   <label for="newPass">Changer mot de passe:</label>
@@ -122,6 +131,27 @@ function setPassword() {
   const link = `${SERVER_URL}/setpwd?p=${encodeURIComponent(newPass)}&key=${currentKey}`;
   window.open(link, "_blank");
   alert("Requete de changement de mot de passe envoyee.");
+}
+
+// Remplir le select dynamiquement avec les valeurs 0 à 10
+const select = document.getElementById('sendLightNumber');
+for (let i = 0; i <= 10; i++) {
+  const option = document.createElement('option');
+  option.value = i;
+  option.textContent = i;
+  select.appendChild(option);
+}
+
+function sendLightNumber() {
+  let code = parseInt(document.getElementById('sendLightNumber').value, 10);
+
+  if (isNaN(code) || code < 0 || code > 11) {
+    alert("Code doit être entre 1 et 10!");
+    return;
+  }
+
+  const link = `${SERVER_URL}/setlights?n=${code}`;
+  window.open(link, "_blank");
 }
 </script>
 
