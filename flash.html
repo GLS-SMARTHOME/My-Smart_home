@@ -27,7 +27,7 @@
     background: #1f6feb; border: none; color: white; border-radius: 5px; transition: 0.2s;
   }
   button:hover { background: #1557c1; }
-  hr { border-color: #333; }
+  hr { border-color: #333; margin: 20px 0; }
 </style>
 </head>
 <body>
@@ -35,6 +35,12 @@
 <h2>Flasher HomeSend</h2>
 
 <div id="page-content" class="container" style="display:none;">
+
+  <!-- Server URL Selection -->
+  <h3>Choisir Serveur</h3>
+  <label><input type="radio" name="server" value="http://192.168.4.1" checked> Serveur Local</label>
+  <label><input type="radio" name="server" value="http://192.168.0.4"> Serveur Réseau (AVEC ROUTEUR)</label>
+  <hr>
 
   <!-- IR Code Section -->
   <label for="btn">Choisir Button:</label>
@@ -67,14 +73,14 @@
 
   <hr>
   
-<h3>Sélectionnez nombre Lampes</h3>
+  <!-- Light Number Selection -->
+  <h3>Sélectionnez nombre Lampes</h3>
+  <select id="sendLightNumber">
+    <option value="">-- Choisir --</option>
+  </select>
+  <button onclick="sendLightNumber()">Confirmer</button>
 
-<select id="sendLightNumber">
-  <option value="">-- Choisir --</option>
-</select>
-
-<button onclick="sendLightNumber()">Confirmer</button>
-<hr>
+  <hr>
 
   <!-- Set Password Section -->
   <label for="newPass">Changer mot de passe:</label>
@@ -84,9 +90,9 @@
 </div>
 
 <script>
-const SERVER_URL = "http://192.168.4.1"; // Fixed server URL
 let currentKey = "1111"; // Security code
 
+// Prompt security on load
 window.onload = function() {
   let userKey = prompt("Entrer code securite pour acceder:");
   if (userKey === null || userKey !== currentKey) {
@@ -95,63 +101,87 @@ window.onload = function() {
     return;
   }
   document.getElementById('page-content').style.display = 'flex';
+  fillLightOptions();
 };
+
+// Get selected server URL
+function getServerUrl() {
+  const selected = document.querySelector('input[name="server"]:checked');
+  return selected ? selected.value : "http://192.168.4.1";
+}
 
 // Upload IR Code
 function uploadCode() {
+  const SERVER_URL = getServerUrl();
   const btn = document.getElementById('btn').value;
   let code = document.getElementById('code').value.trim().toUpperCase();
   if (code.startsWith("0X")) code = code.substring(2);
 
   const hexRegex = /^[0-9A-F]{8}$/;
-  if (!hexRegex.test(code)) { alert("Code doit etre 8 chiffre!"); return; }
+  if (!hexRegex.test(code)) { alert("Code doit être 8 chiffres hexadécimaux!"); return; }
 
   const link = `${SERVER_URL}/storecode?btn=${encodeURIComponent(btn)}&code=${encodeURIComponent(code)}&key=${currentKey}`;
-  window.open(link, "_blank");
+  fetch(link)
+    .then(r => r.text())
+    .then(msg => alert("Réponse: " + msg))
+    .catch(err => alert("Erreur: " + err));
 }
 
 // Send Activation
 function sendActivation() {
+  const SERVER_URL = getServerUrl();
   let code = parseInt(document.getElementById('activationCode').value, 10);
-  if (isNaN(code) || code < 0 || code > 1988) {
-    alert("Code doit etre entre 0 et 2000!");
+  if (isNaN(code) || code < 0 || code > 2000) {
+    alert("Code doit être entre 0 et 2000!");
     return;
   }
 
   const link = `${SERVER_URL}/activation?code=${code}`;
-  window.open(link, "_blank");
+  fetch(link)
+    .then(r => r.text())
+    .then(msg => alert("Réponse: " + msg))
+    .catch(err => alert("Erreur: " + err));
 }
 
-// Set new password
-function setPassword() {
-  let newPass = document.getElementById('newPass').value.trim();
-  if (newPass.length === 0) { alert("Entrez un mot de passe valide!"); return; }
-
-  // Match ESP32 handler: /setpwd?p=...
-  const link = `${SERVER_URL}/setpwd?p=${encodeURIComponent(newPass)}&key=${currentKey}`;
-  window.open(link, "_blank");
-  alert("Requete de changement de mot de passe envoyee.");
+// Fill light number options
+function fillLightOptions() {
+  const select = document.getElementById('sendLightNumber');
+  for (let i = 1; i <= 10; i++) {
+    const option = document.createElement('option');
+    option.value = i;
+    option.textContent = i;
+    select.appendChild(option);
+  }
 }
 
-// Nombre de lampre 1 à 10
-const select = document.getElementById('sendLightNumber');
-for (let i = 1; i <= 10; i++) {
-  const option = document.createElement('option');
-  option.value = i;
-  option.textContent = i;
-  select.appendChild(option);
-}
-
+// Send Light Number
 function sendLightNumber() {
+  const SERVER_URL = getServerUrl();
   let code = parseInt(document.getElementById('sendLightNumber').value, 10);
 
-  if (isNaN(code) || code < 0 || code > 11) {
+  if (isNaN(code) || code < 1 || code > 10) {
     alert("Code doit être entre 1 et 10!");
     return;
   }
 
   const link = `${SERVER_URL}/setlights?n=${code}`;
-  window.open(link, "_blank");
+  fetch(link)
+    .then(r => r.text())
+    .then(msg => alert("Réponse: " + msg))
+    .catch(err => alert("Erreur: " + err));
+}
+
+// Set new password
+function setPassword() {
+  const SERVER_URL = getServerUrl();
+  let newPass = document.getElementById('newPass').value.trim();
+  if (newPass.length === 0) { alert("Entrez un mot de passe valide!"); return; }
+
+  const link = `${SERVER_URL}/setpwd?p=${encodeURIComponent(newPass)}&key=${currentKey}`;
+  fetch(link)
+    .then(r => r.text())
+    .then(msg => alert("Réponse: " + msg))
+    .catch(err => alert("Erreur: " + err));
 }
 </script>
 
